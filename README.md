@@ -86,12 +86,12 @@ Request Body:
       "infection_flag": false,
       "organ_dysfunction_flag": false,
       "sepsis_flag": false
-    }```
+    }
 ### GET /records/
 
 - Fetches all prediction records stored in the database.
-Response:
-      ```json
+* Response:
+      ```
       {
         "records": [
           [
@@ -103,11 +103,11 @@ Response:
 ### GET /realtime-data/
 
 - Provides aggregated counts for high-risk and low-risk sepsis predictions.
-Response:
+* Response:
     ```{
       "sepsis": 15,
       "non_sepsis": 25
-    }```
+    }
 ## Testing
 1. Generate Synthetic Data
 Use the generate.py script to create synthetic patient records:
