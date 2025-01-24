@@ -64,7 +64,6 @@ Scroll down to view a table of recent predictions stored in the database, showin
 
 - Predicts the probabilities of infection, organ dysfunction, and sepsis based on input data.
 Request Body:
-json
     ```{
       "PatientID": "Patient-1",
       "WBC": 8.5,
@@ -79,7 +78,7 @@ json
       "SBP": 110,
       "MAP": 85
     }```
-Response:
+- Response:
     ```{
       "prob_infection": 0.25,
       "prob_organ_dysfunction": 0.45,
@@ -88,9 +87,9 @@ Response:
       "organ_dysfunction_flag": false,
       "sepsis_flag": false
     }```
-GET /records/
+### GET /records/
 
-Fetches all prediction records stored in the database.
+- Fetches all prediction records stored in the database.
 Response:
       ```json
       {
@@ -101,9 +100,9 @@ Response:
           ...
         ]
       }```
-GET /realtime-data/
+### GET /realtime-data/
 
-Provides aggregated counts for high-risk and low-risk sepsis predictions.
+- Provides aggregated counts for high-risk and low-risk sepsis predictions.
 Response:
     ```{
       "sepsis": 15,
