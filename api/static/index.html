@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepsis Prediction Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .form-group input {
+            padding: 0.7rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            grid-column: span 2;
+            padding: 0.6rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .form-section-title {
+            grid-column: span 2;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            padding: 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            display: none;
+            text-align: center;
+        }
+
+        .chart-container {
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .recent-records {
+            margin-top: 3rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        table, th, td {
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 0.8rem;
+        }
+
+        td {
+            text-align: center;
+            padding: 0.8rem;
+        }
+
+        td.high-risk {
+            color: red;
+            font-weight: bold;
+        }
+
+        td.low-risk {
+            color: green;
+            font-weight: bold;
+        }
+
+        #back-button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #back-button:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Sepsis Prediction Dashboard</h1>
+    </header>
+    <main>
+        <h1>Enter Patient Details</h1>
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="PatientID">Patient ID:</label>
+                <input type="text" id="PatientID" placeholder="Enter Patient ID" required>
+            </div>
+
+            <div class="form-section-title">Infection Features</div>
+            <div class="form-group">
+                <label for="WBC">WBC:</label>
+                <input type="number" step="any" id="WBC" placeholder="e.g., 13.0" required>
+            </div>
+            <div class="form-group">
+                <label for="Glucose">Glucose:</label>
+                <input type="number" step="any" id="Glucose" placeholder="e.g., 210" required>
+            </div>
+            <div class="form-group">
+                <label for="Temp">Temperature:</label>
+                <input type="number" step="any" id="Temp" placeholder="e.g., 38.5" required>
+            </div>
+            <div class="form-group">
+                <label for="HR">Heart Rate:</label>
+                <input type="number" step="any" id="HR" placeholder="e.g., 95" required>
+            </div>
+            <div class="form-group">
+                <label for="Resp">Respiratory Rate:</label>
+                <input type="number" step="any" id="Resp" placeholder="e.g., 22" required>
+            </div>
+
+            <div class="form-section-title">Organ Dysfunction Features</div>
+            <div class="form-group">
+                <label for="Creatinine">Creatinine:</label>
+                <input type="number" step="any" id="Creatinine" placeholder="e.g., 1.5" required>
+            </div>
+            <div class="form-group">
+                <label for="Bilirubin_total">Bilirubin Total:</label>
+                <input type="number" step="any" id="Bilirubin_total" placeholder="e.g., 1.4" required>
+            </div>
+            <div class="form-group">
+                <label for="BUN">BUN:</label>
+                <input type="number" step="any" id="BUN" placeholder="e.g., 25" required>
+            </div>
+            <div class="form-group">
+                <label for="FiO2">FiO2:</label>
+                <input type="number" step="any" id="FiO2" placeholder="e.g., 0.7" required>
+            </div>
+            <div class="form-group">
+                <label for="SBP">SBP:</label>
+                <input type="number" step="any" id="SBP" placeholder="e.g., 85" required>
+            </div>
+            <div class="form-group">
+                <label for="MAP">MAP:</label>
+                <input type="number" step="any" id="MAP" placeholder="e.g., 60" required>
+            </div>
+            <button type="button" onclick="predict()">Predict</button>
+        </form>
+
+        <div id="result-container" class="result-container">
+            <h3>Prediction Results</h3>
+            <div class="result-item" id="infection-prob"></div>
+            <div class="result-item" id="organ-dysfunction-prob"></div>
+            <div class="result-item" id="sepsis-risk"></div>
+            <div class="result-item" id="infection-flag"></div>
+            <div class="result-item" id="organ-dysfunction-flag"></div>
+            <button id="back-button" type="button" onclick="restartForm()">Back to Form</button>
+        </div>
+
+        <div class="chart-container">
+            <h3>Real-Time Sepsis Prediction Distribution</h3>
+            <canvas id="sepsisPieChart"></canvas>
+        </div>
+
+        <div class="recent-records">
+            <h3>Recent Records</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>WBC</th>
+                        <th>Glucose</th>
+                        <th>Temp</th>
+                        <th>HR</th>
+                        <th>Resp</th>
+                        <th>Creatinine</th>
+                        <th>Bilirubin</th>
+                        <th>BUN</th>
+                        <th>FiO2</th>
+                        <th>SBP</th>
+                        <th>MAP</th>
+                        <th>Sepsis Risk</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let sepsisPieChart;
+
+        async function predict() {
+            const formData = {
+                PatientID: document.getElementById("PatientID").value,
+                WBC: parseFloat(document.getElementById("WBC").value),
+                Glucose: parseFloat(document.getElementById("Glucose").value),
+                Temp: parseFloat(document.getElementById("Temp").value),
+                HR: parseFloat(document.getElementById("HR").value),
+                Resp: parseFloat(document.getElementById("Resp").value),
+                Creatinine: parseFloat(document.getElementById("Creatinine").value),
+                Bilirubin_total: parseFloat(document.getElementById("Bilirubin_total").value),
+                BUN: parseFloat(document.getElementById("BUN").value),
+                FiO2: parseFloat(document.getElementById("FiO2").value),
+                SBP: parseFloat(document.getElementById("SBP").value),
+                MAP: parseFloat(document.getElementById("MAP").value),
+            };
+
+            const resultContainer = document.getElementById("result-container");
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/predict/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    document.getElementById("infection-prob").textContent = `Probability of Infection: ${(data.prob_infection * 100).toFixed(2)}%`;
+                    document.getElementById("organ-dysfunction-prob").textContent = `Probability of Organ Dysfunction: ${(data.prob_organ_dysfunction * 100).toFixed(2)}%`;
+                    document.getElementById("sepsis-risk").textContent = `Sepsis Risk: ${data.sepsis_flag ? "High" : "Low"}`;
+                    document.getElementById("infection-flag").textContent = `Infection Flag: ${data.infection_flag ? "High Risk" : "Low Risk"}`;
+                    document.getElementById("organ-dysfunction-flag").textContent = `Organ Dysfunction Flag: ${data.organ_dysfunction_flag ? "High Risk" : "Low Risk"}`;
+
+                    resultContainer.style.display = "block";
+                } else {
+                    const error = await response.json();
+                    alert("Error: " + error.detail);
+                }
+            } catch (error) {
+                console.error("Prediction failed", error);
+                alert("Failed to fetch prediction results. Please try again.");
+            }
+        }
+
+        function restartForm() {
+            document.getElementById("predictionForm").reset();
+            document.getElementById("result-container").style.display = "none";
+        }
+
+        function updateTable(patientID, data) {
+            const tableBody = document.getElementById("recordsBody");
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${patientID}</td>
+                <td>${data.prob_infection}</td>
+                <td>${data.prob_organ_dysfunction}</td>
+                <td>${(data.sepsis_flag ? "High" : "Low")}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+
+        async function fetchRealTimeData() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/realtime-data/");
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (!sepsisPieChart) {
+                        const ctx = document.getElementById("sepsisPieChart").getContext("2d");
+                        sepsisPieChart = new Chart(ctx, {
+                            type: "pie",
+                            data: {
+                                labels: ["Low-Risk Sepsis", "High-Risk Sepsis"],
+                                datasets: [
+                                    {
+                                        data: [data.non_sepsis, data.sepsis],
+                                        backgroundColor: ["#36A2EB", "#FF6384"],
+                                        borderColor: ["#007BFF", "#FF0000"],
+                                        borderWidth: 1,
+                                    },
+                                ],
+                            },
+                            options: {
+                                responsive: true,
+                                plugins: {
+                                    legend: {
+                                        position: "bottom",
+                                        labels: {
+                                            font: { size: 14 },
+                                        },
+                                    },
+                                },
+                            },
+                        });
+                    } else {
+                        sepsisPieChart.data.datasets[0].data = [data.non_sepsis, data.sepsis];
+                        sepsisPieChart.update();
+                    }
+                } else {
+                    console.error("Failed to fetch real-time data");
+                }
+            } catch (error) {
+                console.error("Error fetching real-time data", error);
+            }
+        }
+        async function fetchRecentRecords() {
+            try {
+                const response = await fetch("http://127.0.0.1:8000/records/");
+                if (response.ok) {
+                    const data = await response.json();
+                    const tableBody = document.getElementById("recordsBody");
+                    tableBody.innerHTML = ""; // Clear previous rows
+
+                    data.records.forEach(record => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${record[1]}</td> <!-- PatientID -->
+                            <td>${record[2]}</td> <!-- WBC -->
+                            <td>${record[3]}</td> <!-- Glucose -->
+                            <td>${record[4]}</td> <!-- Temp -->
+                            <td>${record[5]}</td> <!-- HR -->
+                            <td>${record[6]}</td> <!-- Resp -->
+                            <td>${record[7]}</td> <!-- Creatinine -->
+                            <td>${record[8]}</td> <!-- Bilirubin_total -->
+                            <td>${record[9]}</td> <!-- BUN -->
+                            <td>${record[10]}</td> <!-- FiO2 -->
+                            <td>${record[11]}</td> <!-- SBP -->
+                            <td>${record[12]}</td> <!-- MAP -->
+                            <td class="${record[14] > 0.5 ? 'high-risk' : 'low-risk'}">
+                                ${record[14] > 0.5 ? 'High' : 'Low'}
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                    console.error("Failed to fetch recent records");
+                }
+            } catch (error) {
+                console.error("Error fetching recent records:", error);
+            }
+        }
+
+        setInterval(fetchRealTimeData, 5000);
+        setInterval(fetchRecentRecords, 5000);
+    </script>
+</body>
+</html>

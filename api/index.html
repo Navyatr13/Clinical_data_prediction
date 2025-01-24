@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepsis Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+        }
+        input {
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            width: 100%;
+        }
+        button {
+            padding: 0.7rem;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sepsis Prediction</h1>
+    <form id="predictionForm">
+        <h3>Infection Features</h3>
+        <input type="number" step="any" id="WBC" placeholder="WBC (e.g., 13.0)" required>
+        <input type="number" step="any" id="Glucose" placeholder="Glucose (e.g., 210)" required>
+        <input type="number" step="any" id="Temp" placeholder="Temp (e.g., 38.5)" required>
+        <input type="number" step="any" id="HR" placeholder="Heart Rate (e.g., 95)" required>
+        <input type="number" step="any" id="Resp" placeholder="Respiratory Rate (e.g., 22)" required>
+        <h3>Organ Dysfunction Features</h3>
+        <input type="number" step="any" id="Creatinine" placeholder="Creatinine (e.g., 1.5)" required>
+        <input type="number" step="any" id="Bilirubin_total" placeholder="Bilirubin Total (e.g., 1.4)" required>
+        <input type="number" step="any" id="BUN" placeholder="BUN (e.g., 25)" required>
+        <input type="number" step="any" id="FiO2" placeholder="FiO2 (e.g., 0.7)" required>
+        <input type="number" step="any" id="SBP" placeholder="SBP (e.g., 85)" required>
+        <input type="number" step="any" id="MAP" placeholder="MAP (e.g., 60)" required>
+        <button type="button" onclick="predict()">Predict</button>
+    </form>
+
+    <div class="result" id="result"></div>
+
+    <script>
+        async function predict() {
+            const formData = {
+                WBC: parseFloat(document.getElementById("WBC").value),
+                Glucose: parseFloat(document.getElementById("Glucose").value),
+                Temp: parseFloat(document.getElementById("Temp").value),
+                HR: parseFloat(document.getElementById("HR").value),
+                Resp: parseFloat(document.getElementById("Resp").value),
+                Creatinine: parseFloat(document.getElementById("Creatinine").value),
+                Bilirubin_total: parseFloat(document.getElementById("Bilirubin_total").value),
+                BUN: parseFloat(document.getElementById("BUN").value),
+                FiO2: parseFloat(document.getElementById("FiO2").value),
+                SBP: parseFloat(document.getElementById("SBP").value),
+                MAP: parseFloat(document.getElementById("MAP").value),
+            };
+
+            const response = await fetch("http://127.0.0.1:8000/predict/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const resultDiv = document.getElementById("result");
+            if (response.ok) {
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>Prediction Results</h3>
+                    <p>Probability of Infection: ${(data.prob_infection * 100).toFixed(2)}%</p>
+                    <p>Probability of Organ Dysfunction: ${(data.prob_organ_dysfunction * 100).toFixed(2)}%</p>
+                    <p>Probability of Sepsis: ${(data.prob_sepsis * 100).toFixed(2)}%</p>
+                `;
+            } else {
+                const error = await response.json();
+                resultDiv.innerHTML = `<p style="color:red;">Error: ${error.detail}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
