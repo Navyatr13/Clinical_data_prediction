@@ -64,7 +64,8 @@ Scroll down to view a table of recent predictions stored in the database, showin
 
 - Predicts the probabilities of infection, organ dysfunction, and sepsis based on input data.
 Request Body:
-    ```{
+    ```
+    {
       "PatientID": "Patient-1",
       "WBC": 8.5,
       "Glucose": 120,
@@ -79,7 +80,8 @@ Request Body:
       "MAP": 85
     }```
 - Response:
-    ```{
+    ```
+    {
       "prob_infection": 0.25,
       "prob_organ_dysfunction": 0.45,
       "prob_sepsis": 0.3,
@@ -93,18 +95,19 @@ Request Body:
 * Response:
       ```
       {
-        "records": [
-          [
-            1, "Patient-1", 8.5, 120, 37.2, 85, 18, 1.0, 0.8, 15, 0.21, 110, 85, 0.25, 0.45, 0.3
-          ],
-          ...
-        ]
-      }```
+          "records": [
+            [
+              1, "Patient-1", 8.5, 120, 37.2, 85, 18, 1.0, 0.8, 15, 0.21, 110, 85, 0.25, 0.45, 0.3
+            ],
+            ...
+          ]
+        }```
 ### GET /realtime-data/
 
 - Provides aggregated counts for high-risk and low-risk sepsis predictions.
 * Response:
-    ```{
+    ```
+    {
       "sepsis": 15,
       "non_sepsis": 25
     }
