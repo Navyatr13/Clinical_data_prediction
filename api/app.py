@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pickle
 import numpy as np
@@ -12,6 +13,12 @@ app = FastAPI()
 # Serve the static files directory for the frontend
 app.mount("/static", StaticFiles(directory="api/static"), name="static")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Replace "*" with specific origins for better security
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Paths to the models
 infection_model_path = "./models/infection_model.pkl"
 organ_model_path = "./models/organ_model.pkl"
@@ -67,7 +74,9 @@ async def serve_index():
         return HTMLResponse(content=file.read(), status_code=200)
 
 @app.post("/predict/")
-async def predict(features: Features):
+async def predict(features: Features, request: Request):
+    print("Request method:", request.method)
+    print("Request URL:", request.url)
     try:
         # Prepare data for prediction
         infection_data = np.array([getattr(features, f) for f in infection_features]).reshape(1, -1)
@@ -79,9 +88,9 @@ async def predict(features: Features):
         prob_sepsis = float(sepsis_model.predict_proba(sepsis_data)[0][1])  # Convert to float
 
         # Define thresholds
-        infection_threshold = 0.3
-        organ_dysfunction_threshold = 0.5
-        sepsis_threshold = 0.5
+        infection_threshold = 0.5 #np.percentile(validation_data["prob_infection"], 75)
+        organ_dysfunction_threshold = 0.5 #np.percentile(validation_data["prob_organ_dysfunction"], 75)
+        sepsis_threshold = 0.5  # Keep static or refine later
 
         # Threshold-based classifications
         infection_flag = bool(prob_infection >= infection_threshold)  # Convert to bool
@@ -96,12 +105,12 @@ async def predict(features: Features):
 
         # Ensure `prob_sepsis_combination` is a float
         prob_sepsis_combination = float(prob_sepsis_combination)
+        prob_sepsis_combination = float(prob_sepsis_combination)
         if organ_dysfunction_flag == True or infection_flag == True:
             sepsis_flag = "True"
         else:
-            sepsis_flag = bool(prob_sepsis_combination > sepsis_threshold)  # Convert to bool
-
-        # Save prediction to the database
+            sepsis_flag = bool(prob_sepsis_combination > sepsis_threshold)
+            # Save prediction to the database
         cursor.execute("""
                     INSERT INTO predictions (
                         PatientID, WBC, Glucose, Temp, HR, Resp, Creatinine, Bilirubin_total, BUN, FiO2, SBP, MAP,
